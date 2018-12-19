@@ -29,8 +29,6 @@ class ViewController: UIViewController {
         adView.dataSource = self
         adView.delegate = self
         adView.backgroundColor = UIColor.groupTableViewBackground
-        let pageControl = UIPageControl()
-        adView.pageControl = pageControl
         
         return adView
     }()

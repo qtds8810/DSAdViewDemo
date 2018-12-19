@@ -33,22 +33,14 @@ class DSAdView: UIView {
     weak var delegate: DSAdViewDelegate?
     
     /// 分页控制器
-    var pageControl: UIPageControl? {
-        didSet {
-            guard let pageControl = pageControl else { return }
-            pageControl.frame = CGRect(x: 0, y: frame.maxY - 20, width: frame.width, height: 10)
-            pageControl.hidesForSinglePage = true
-            if pageControl.currentPageIndicatorTintColor == nil {
-                pageControl.currentPageIndicatorTintColor = UIColor.white
-            }
-            if pageControl.pageIndicatorTintColor == nil {
-                pageControl.pageIndicatorTintColor = UIColor(hexString: "4a4a4a")
-            }
-            pageControl.isHidden = false
-            
-            addSubview(pageControl)
-        }
-    }
+    lazy var pageControl: UIPageControl = {
+        let pageControl = UIPageControl(frame: CGRect(x: 0, y: frame.maxY - 20, width: frame.width, height: 10))
+        pageControl.hidesForSinglePage = true
+        pageControl.currentPageIndicatorTintColor = UIColor.white
+        pageControl.pageIndicatorTintColor = UIColor(hexString: "4a4a4a")
+        pageControl.isHidden = false
+        return pageControl
+    }()
     
     class DSAdViewBuilder {
         /// 广告的大小
@@ -151,7 +143,9 @@ class DSAdView: UIView {
             startTimer()
         }
         
-        if let pageControl = pageControl, !pageControl.isHidden {
+        pageControl.isHidden = rowCount <= 1
+        if !pageControl.isHidden {
+            addSubview(pageControl)
             pageControl.numberOfPages = (builder.isInfinite && rowCount > 3) ? (rowCount - 2) : rowCount
         }
         
@@ -194,7 +188,7 @@ class DSAdView: UIView {
         guard rowCount > 0, let currentIndexP = getCenterIndexPath() else { return }
         
         if builder.isInfinite && rowCount > 3 && (currentIndexP.row >= rowCount - 2) {
-            pageControl?.currentPage = 0
+            pageControl.currentPage = 0
             if builder.scrollDirection == .horizontal {// 水平滚动
                 myCollectionView.contentOffset.x = 0
                 myCollectionView.scrollToItem(at: IndexPath(row: 1, section: 0), at: .centeredHorizontally, animated: true)
@@ -214,7 +208,6 @@ class DSAdView: UIView {
 // MARK: - Private Method
 private extension DSAdView {
     private func updatePageControl(currentPage: Int) {
-        guard let pageControl = pageControl else { return }
         if builder.isInfinite {
             switch currentPage {
             case 0:
@@ -338,6 +331,7 @@ extension DSAdView: UICollectionViewDataSource, UICollectionViewDelegate {
     }
     
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        scrollDidEnd(scrollView)
         if builder.isAutoPlay && rowCount > 3 {
             startTimer()
         }
